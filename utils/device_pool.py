@@ -52,6 +52,7 @@ class DeviceObject(object):
         out = subprocess.check_output(['/usr/bin/adb version'], shell=True)
         search = re.search('[0-9\.]+', out)
         os.system("ANDROID_SERIAL=" + self.serial + " adb wait-for-device")
+        os.close(out)
         if search and search.group(0) >= '1.0.31':
             ret = subprocess.call('/usr/bin/adb forward --list |grep ' + self.serial, shell=True, stdout=open(os.devnull, 'w'))
             if ret == 0:
@@ -66,15 +67,18 @@ class DeviceObject(object):
         out = subprocess.check_output(['/usr/bin/adb version'], shell=True)
         search = re.search('[0-9\.]+', out)
         os.system("ANDROID_SERIAL=" + self.serial + " adb wait-for-device")
+        os.close(out)
         if search and search.group(0) >= '1.0.31':
             forward_list = subprocess.check_output('/usr/bin/adb forward --list', shell=True).splitlines()
             for out in forward_list:
                 search_serial = re.search('\w+', out)
                 if search_serial and search_serial.group(0) == self.serial:
                     logger.info("DeviceSerial[" + self.serial + "] forwarded")
+                    os.close(forward_list)
                     return int(re.search(' tcp:(\d+) ', out).group(1))
         else:
             logger.info("adb forward --list not supported; recommend to upgrade 1.0.31 or newer version")
+        os.close(forward_list)
         return None
 
     def acquire_file_lock(self):
