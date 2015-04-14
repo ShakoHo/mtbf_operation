@@ -342,6 +342,7 @@ class MtbfJobRunner(BaseActionRunner):
                 self.pre_flash()
                 self.flash()
                 self.device_obj.create_adb_forward()
+                self.port = self.device_obj.adb_forwarded_port
                 self.post_flash()
                 self.execute()
                 self.collect_report(self.serial)
