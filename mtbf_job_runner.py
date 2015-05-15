@@ -7,6 +7,7 @@ import logging
 import shutil
 import stat
 import glob
+import time
 import tempfile
 import utils.crash_scan as CrashScan
 import utils.device_pool as device_pool
@@ -23,6 +24,7 @@ from utils import zip_utils
 from flash_tool.utilities.decompressor import Decompressor
 from flash_tool.utilities.logger import Logger
 from mtbf_driver import mtbf
+from multiprocessing import Process, Queue
 
 logger = logging.getLogger("mtbf_operation")
 logging.basicConfig(level=logging.DEBUG)
@@ -297,20 +299,70 @@ class MtbfJobRunner(BaseActionRunner):
 
     @action(enabled=True)
     def run_mtbf(self):
-        mtbf.main(marionette=self.marionette, testvars=self.options.testvars, **self.kwargs)
+        return_dict = mtbf.main(marionette=self.marionette, testvars=self.options.testvars, **self.kwargs)
+        self.result.put(return_dict)
+
+    def output_summary(self, result_obj):
+        self.logger.info('\nMTBF TEST SUMMARY\n-----------------')
+        self.logger.info("\n*Total MTBF Time: %.3f seconds" % self.mtbf_total_time)
+        self.logger.info("\nTotal Sleep Time: %.3f seconds" % self.mtbf_sleep_time)
+        self.logger.info('passed: %d' % self.mtbf_total_passed)
+        self.logger.info('failed: %d' % self.mtbf_total_failed)
+        self.logger.info('todo:   %d' % self.mtbf_total_todo)
+
+    def run_mtbf_by_subprocess(self):
+        self.mtbf_total_time = 0.0
+        self.mtbf_sleep_time = 0.0
+        self.mtbf_total_passed = 0
+        self.mtbf_total_failed = 0
+        self.mtbf_total_todo = 0
+        self.result = Queue()
+        mtbf_subprocess_restart_time = 3
+        mtbf_time_str = os.environ.get("MTBF_TIME")
+
+        if "h" in mtbf_time_str:
+            mtbf_time_hr = int(mtbf_time_str.replace("h", ""))
+        if "d" in mtbf_time_str:
+            mtbf_time_hr = int(mtbf_time_str.replace("d", "")) * 24
+        if "m" in mtbf_time_str:
+            #mtbf_time_hr = 1
+            mtbf_time_hr = int(mtbf_time_str.replace("m", ""))
+
+        while True:
+            if mtbf_time_hr <= 0:
+                break
+            elif mtbf_time_hr > mtbf_subprocess_restart_time:
+                mtbf_time_hr -= mtbf_subprocess_restart_time
+                os.environ['MTBF_TIME'] = str(mtbf_subprocess_restart_time) + "m"
+            else:
+                os.environ['MTBF_TIME'] = str(mtbf_time_hr) + "m"
+                mtbf_time_hr -= mtbf_subprocess_restart_time
+
+            process_obj = Process(target=self.run_mtbf)
+            process_obj.start()
+            process_obj.join()
+            result_obj = self.result.get()
+            self.mtbf_total_time += result_obj['total_time']
+            self.mtbf_sleep_time += result_obj['sleep_time']
+            self.mtbf_total_passed += result_obj['passed']
+            self.mtbf_total_failed += result_obj['failed']
+            self.mtbf_total_todo += result_obj['todo']
+            self.output_summary(result_obj)
+            if result_obj['status'] == 0:
+                break
 
     def execute(self):
         self.marionette.cleanup()
         self.marionette = Marionette(device_serial=self.serial, port=self.port)
         self.marionette.wait_for_port()
-        # run test runner here
+        # run test runner herez
         self.remove_settings_opt()
         self.kwargs = {}
         if self.port:
             self.kwargs['address'] = "localhost:" + str(self.port)
         logger.info("Using address[localhost:" + str(self.port) + "]")
         self.mtbf_daily()
-        self.run_mtbf()
+        self.run_mtbf_by_subprocess()
 
     def pre_flash(self):
         pass
