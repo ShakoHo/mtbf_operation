@@ -325,17 +325,17 @@ class MtbfJobRunner(BaseActionRunner):
         if "d" in mtbf_time_str:
             mtbf_time_hr = int(mtbf_time_str.replace("d", "")) * 24
         if "m" in mtbf_time_str:
-            #mtbf_time_hr = 1
-            mtbf_time_hr = int(mtbf_time_str.replace("m", ""))
+            mtbf_time_hr = 1
+            #mtbf_time_hr = int(mtbf_time_str.replace("m", ""))
 
         while True:
             if mtbf_time_hr <= 0:
                 break
             elif mtbf_time_hr > mtbf_subprocess_restart_time:
                 mtbf_time_hr -= mtbf_subprocess_restart_time
-                os.environ['MTBF_TIME'] = str(mtbf_subprocess_restart_time) + "m"
+                os.environ['MTBF_TIME'] = str(mtbf_subprocess_restart_time) + "h"
             else:
-                os.environ['MTBF_TIME'] = str(mtbf_time_hr) + "m"
+                os.environ['MTBF_TIME'] = str(mtbf_time_hr) + "h"
                 mtbf_time_hr -= mtbf_subprocess_restart_time
 
             process_obj = Process(target=self.run_mtbf)
