@@ -304,8 +304,8 @@ class MtbfJobRunner(BaseActionRunner):
 
     def output_summary(self, result_obj):
         self.logger.info('\nMTBF TEST SUMMARY\n-----------------')
-        self.logger.info("\n*Total MTBF Time: %.3f seconds" % self.mtbf_total_time)
-        self.logger.info("\nTotal Sleep Time: %.3f seconds" % self.mtbf_sleep_time)
+        self.logger.info("\n*mtbf_operation: Total MTBF Time: %.3f seconds" % self.mtbf_total_time)
+        self.logger.info("\nmtbf_operation: Total Sleep Time: %.3f seconds" % self.mtbf_sleep_time)
         self.logger.info('passed: %d' % self.mtbf_total_passed)
         self.logger.info('failed: %d' % self.mtbf_total_failed)
         self.logger.info('todo:   %d' % self.mtbf_total_todo)
