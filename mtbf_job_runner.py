@@ -317,7 +317,7 @@ class MtbfJobRunner(BaseActionRunner):
         self.mtbf_total_failed = 0
         self.mtbf_total_todo = 0
         self.result = Queue()
-        mtbf_subprocess_restart_time = 3
+        mtbf_subprocess_restart_time = 14
         mtbf_time_str = os.environ.get("MTBF_TIME")
 
         if "h" in mtbf_time_str:
