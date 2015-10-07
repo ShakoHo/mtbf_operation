@@ -20,7 +20,7 @@ import mozdevice
 from mozlog import structured
 from mozdevice.devicemanager import DMError
 from gaiatest import GaiaData, GaiaApps, GaiaDevice
-from gaiatest.runtests import GaiaTestOptions, GaiaTestRunner
+from gaiatest.runtests import GaiaTestArguments, GaiaTestRunner
 from utils import zip_utils
 from flash_tool.utilities.decompressor import Decompressor
 from flash_tool.utilities.logger import Logger
@@ -31,9 +31,9 @@ logging.basicConfig(level=logging.DEBUG)
 
 action = action_decorator.action
 
-class MtbfTestOptions(GaiaTestOptions):
+class MtbfTestArguments(GaiaTestArguments):
     def __init__(self):
-        GaiaTestOptions.__init__(self)
+        GaiaTestArguments.__init__(self)
 
 
 class MtbfJobRunner(BaseActionRunner):
@@ -323,7 +323,7 @@ class MtbfJobRunner(BaseActionRunner):
 
     @action(enabled=False)
     def mtbf_daily(self):
-        parser = GaiaTestOptions()
+        parser = GaiaTestArguments()
 
         opts = []
         for k, v in self.kwargs.iteritems():
