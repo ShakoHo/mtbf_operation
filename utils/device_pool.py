@@ -156,7 +156,11 @@ def get_device(specify_serial=None):
         return current_device_object
     for serial_key in device_obj_map.keys():
         try:
-            if not device_obj_map[serial_key].is_file_locked and not device_obj_map[serial_key].is_in_forwarded_list:
+            if device_obj_map[serial_key].is_file_locked:
+                logger.warning(serial_key + " is locked")
+            if device_obj_map[serial_key].is_in_forwarded_list:
+                logger.warning(serial_key + " is in forward list")
+            else:
                 device_obj_map[serial_key].acquire_file_lock()
                 current_device_object = device_obj_map[serial_key]
                 logger.info("Get device with serial [" + serial_key + "]!")
@@ -174,7 +178,7 @@ def get_device(specify_serial=None):
 def release():
     global current_device_object
     if not current_device_object:
-        logger.info("No device in use!")
+        logger.error("No device in use!")
         return
     try:
         current_device_object.release_file_lock()

@@ -41,7 +41,7 @@ def main():
     print("==== start of parsing crash report ====")
     for cf in cfs:
         cfh = codecs.open(cf, encoding='UTF-8')
-        print(cfh.read())
+        print("CrashReportCLI: " + cfh.read())
     print("==== end of parsing crash report ====")
 
 
