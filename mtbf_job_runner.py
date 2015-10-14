@@ -274,8 +274,9 @@ class MtbfJobRunner(BaseActionRunner):
                 fh.write(json.dumps(job, indent=2, sort_keys=True))
 
     def stop_monitoring(self):
-        os.remove(self.monitor_conf)
-        self.monitor_conf = None
+        if hasattr(self, 'raptor'):
+            os.remove(self.monitor_conf)
+            self.monitor_conf = None
 
     def check_version(self):
         # FIXME: fix check version to use package import
